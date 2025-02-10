@@ -1,0 +1,59 @@
+import platform
+import subprocess
+import GPUtil  # For GPU info (install: pip install gputil)
+
+def get_gpu_info():
+    """Prints information about GPU on macOS."""
+
+    try:
+        # macOS Specific GPU Detection (using system_profiler)
+        if platform.system() == "Darwin":  # Darwin is the kernel name for macOS
+            try:
+                sp_output = subprocess.check_output(["system_profiler", "SPDisplaysDataType"], text=True)
+                print("\nGPU Information (macOS):")
+                print(sp_output)  # Print the entire output for detailed info.
+
+                # Alternatively, you can parse the output if you want specific information
+                # (This is more complex because the output format can vary slightly)
+                # Example (basic parsing - adapt as needed):
+                # if "Graphics Card" in sp_output:
+                #     lines = sp_output.splitlines()
+                #     for line in lines:
+                #         if "Chipset:" in line:
+                #             chipset = line.split("Chipset:").strip()
+                #             print(f"  Chipset: {chipset}")
+                #         #... extract other info as needed...
+
+            except FileNotFoundError:
+                print("system_profiler command not found.")
+            except subprocess.CalledProcessError as e:
+                print(f"Error running system_profiler: {e}")
+            except Exception as e:
+                print(f"Error parsing system_profiler output: {e}")
+
+        # Try GPUtil for cross-platform GPU information (may not work perfectly on macOS)
+        try:
+            gpus = GPUtil.getGPUs()
+            if gpus:
+                print("\nGPU Information (GPUtil - may be limited on macOS):")
+                for gpu in gpus:
+                    print(f"  Name: {gpu.name}")
+                    print(f"  UUID: {gpu.uuid}")
+                    print(f"  Driver Version: {gpu.driver}") # Driver information might not be available
+                    print(f"  Memory Total: {gpu.memoryTotal} MB")
+                    print(f"  Memory Used: {gpu.memoryUsed} MB")
+                    print(f"  Memory Free: {gpu.memoryFree} MB")
+                    print(f"  Temperature: {gpu.temperature} °C")
+                    print(f"  Load: {gpu.load * 100:.2f}%")
+                    print("-" * 20)
+            else:
+                print("\nNo GPUs detected by GPUtil.") # GPUtil might not detect GPUs reliably on macOS
+
+        except Exception as e:
+            print(f"Error getting GPU info using GPUtil: {e}")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+if __name__ == "__main__":
+    get_gpu_info()
