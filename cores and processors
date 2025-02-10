@@ -1,0 +1,82 @@
+import platform
+import psutil
+import subprocess  # For getting CPU information on some systems
+
+def get_cpu_info():
+    """Prints information about CPU cores, processors, and speed."""
+
+    try:
+        # Operating System Information (optional)
+        print(f"Operating System: {platform.system()}")
+        print(f"OS Release: {platform.release()}")
+
+        # CPU Core and Processor Information
+        try:
+            physical_cores = psutil.cpu_count(logical=False)
+            logical_cores = psutil.cpu_count(logical=True)
+            print(f"Number of physical cores: {physical_cores}")
+            print(f"Number of logical cores (including hyperthreading): {logical_cores}")
+
+            # Processor information (using different methods, OS-dependent)
+
+            # Method 1 (Linux): /proc/cpuinfo (May require root/admin privileges)
+            if platform.system() == "Linux":
+                try:
+                    with open("/proc/cpuinfo", "r") as f:
+                        cpuinfo = f.read()
+                        # Extract processor information (this part can be complex and depends on the /proc/cpuinfo format)
+                        # Example: Count the occurrences of "processor :" to get the number of processors
+                        num_processors = cpuinfo.count("processor :")
+                        print(f"Number of processors (approximate - Linux): {num_processors}")
+
+                except Exception as e:
+                    print(f"Error reading /proc/cpuinfo: {e}")
+
+            # Method 2 (Windows): Using WMIC (Windows Management Instrumentation Command-line)
+            elif platform.system() == "Windows":
+                try:
+                    wmic_output = subprocess.check_output(["wmic", "cpu", "get", "NumberOfProcessors", "/value"], text=True)
+                    # Parse the WMIC output to get the number of processors
+                    for line in wmic_output.splitlines():
+                        if "NumberOfProcessors=" in line:
+                           num_processors = int(line.split("=")[1])
+                           print(f"Number of processors (Windows): {num_processors}")
+                           break
+                except Exception as e:
+                    print(f"Error using WMIC: {e}")
+
+            else:
+                print("Processor count method not implemented for this OS.")
+
+        except ImportError:
+            print("psutil is not installed. Install it with: pip install psutil")  # Important!
+        except Exception as e:
+            print(f"Error getting CPU info: {e}")
+
+
+        # CPU Speed (More Complex, OS-Dependent)
+        try:
+            # CPU frequency (may not be current speed due to dynamic scaling)
+            cpufreq = psutil.cpu_freq()
+            print(f"Current CPU Frequency: {cpufreq.current:.2f} MHz")  # May not be accurate
+
+            # Base CPU frequency (if available)
+            if cpufreq.min > 0:
+                print(f"Minimum CPU Frequency: {cpufreq.min:.2f} MHz")
+            if cpufreq.max > 0:
+                print(f"Maximum CPU Frequency: {cpufreq.max:.2f} MHz")
+
+            # Note: Getting the *exact* current CPU speed is difficult as it dynamically changes.
+            # The above values are the *nominal* or *base* frequencies.
+
+        except Exception as e:
+            print(f"Error getting CPU frequency: {e}")
+
+
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
+if __name__ == "__main__":
+    get_cpu_info()
