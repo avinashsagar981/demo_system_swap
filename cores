@@ -1,0 +1,45 @@
+import os
+import multiprocessing
+import platform
+import psutil
+
+def get_cpu_info():
+    """Prints information about CPU cores."""
+
+    try:
+        # Operating System Information (optional, but good to include)
+        print(f"Operating System: {platform.system()}")
+        print(f"OS Release: {platform.release()}")
+
+        # CPU Core Information
+        try:
+            # Method 1: os.cpu_count() (Simplest)
+            num_cores_os = os.cpu_count()
+            if num_cores_os is not None:
+                print(f"Number of CPU cores (os.cpu_count()): {num_cores_os}")
+            else:
+                print("os.cpu_count() returned None.")
+
+        except Exception as e:
+            print(f"Error with os.cpu_count(): {e}")
+
+
+        try:
+            # Method 2: psutil (More reliable for physical cores)
+            physical_cores_psutil = psutil.cpu_count(logical=False)
+            print(f"Number of physical cores (psutil): {physical_cores_psutil}")
+
+            logical_cores_psutil = psutil.cpu_count(logical=True) # Optional: if you still want logical core count
+            print(f"Number of logical cores (psutil): {logical_cores_psutil}") # Optional
+
+        except ImportError:
+            print("psutil is not installed. Install it with: pip install psutil")
+        except Exception as e:
+            print(f"Error with psutil: {e}")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
+if __name__ == "__main__":
+    get_cpu_info()
