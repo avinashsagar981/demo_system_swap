@@ -1,0 +1,65 @@
+import os
+import multiprocessing
+import platform
+import psutil  # For more detailed CPU info (install: pip install psutil)
+import GPUtil  # For GPU info (install: pip install gputil)
+
+def get_system_info():
+    """Prints information about CPU cores, threads, and GPU."""
+
+    try:
+        # Operating System Information
+        print(f"Operating System: {platform.system()}")
+        print(f"OS Release: {platform.release()}")
+
+        # CPU Information
+        try:
+            num_cores = os.cpu_count()
+            if num_cores is not None:
+                print(f"Number of CPU cores (reported by os.cpu_count()): {num_cores}")
+            else:
+                print("os.cpu_count() returned None. Could not determine core count.")
+
+            logical_cores = multiprocessing.cpu_count()
+            print(f"Number of logical cores (including hyperthreading): {logical_cores}")
+
+            try:
+                physical_cores = psutil.cpu_count(logical=False)  # Using psutil for physical cores
+                print(f"Number of physical cores (using psutil): {physical_cores}")
+            except Exception as e:
+                print(f"Error getting physical core count with psutil: {e}")
+
+        except Exception as e:
+            print(f"Error getting CPU info: {e}")
+
+        # GPU Information
+        try:
+            gpus = GPUtil.getGPUs()
+            if gpus:
+                print("\nGPU Information:")
+                for gpu in gpus:
+                    print(f"  Name: {gpu.name}")
+                    print(f"  UUID: {gpu.uuid}")
+                    print(f"  Driver Version: {gpu.driver}")
+                    print(f"  Memory Total: {gpu.memoryTotal} MB")
+                    print(f"  Memory Used: {gpu.memoryUsed} MB")
+                    print(f"  Memory Free: {gpu.memoryFree} MB")
+                    print(f"  Temperature: {gpu.temperature} °C")
+                    # No direct "speed" info, but you can infer performance from other metrics.
+                    # Clock speeds are dynamic and not always reliably reported.
+                    # Instead, focus on memory usage, temperature, and utilization.
+                    print(f"  Load: {gpu.load * 100:.2f}%") # GPU utilization
+                    print("-" * 20)
+
+            else:
+                print("\nNo GPUs detected.")
+
+        except Exception as e:
+            print(f"Error getting GPU info: {e}")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
+if __name__ == "__main__":
+    get_system_info()
